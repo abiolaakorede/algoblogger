@@ -1,3 +1,7 @@
+This dapp was built on the algo blockchain. It enables bloggers have their writeups created as a post and others can tip that writer if they find a particular post interesting. This is to offer incentives to writers
+
+https://incomparable-tapioca-ee7ad0.netlify.app
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
