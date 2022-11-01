@@ -42,9 +42,10 @@ function App() {
   const createPost = async (data) => {
     try {
       await createPostAction(address, data);
-      getPosts()
     } catch (error) {
       console.log(error);
+    } finally{
+      getPosts()
     }
   }
 

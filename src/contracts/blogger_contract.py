@@ -1,5 +1,6 @@
 from pyteal import *
 
+
 class Blogger:
     class Variables:
         author = Bytes("AUTHOR")
@@ -12,13 +13,14 @@ class Blogger:
 
     class AppMethods:
         tip = Bytes("tip")
+        update = Bytes("update")
 
     def application_creation(self):
         return Seq([
-            #The Length of arguments passed should be 4
+            # The Length of arguments passed should be 4
             Assert(Txn.application_args.length() == Int(4)),
             # The note attached to the transaction must be "algoblogger:re10.10",
-            
+
             Assert(Txn.note() == Bytes("algoblogger:re10.10")),
             App.globalPut(self.Variables.author, Txn.application_args[0]),
             App.globalPut(self.Variables.content, Txn.application_args[1]),
@@ -32,32 +34,49 @@ class Blogger:
 
     def tipPost(self):
         return Seq([
-            # 
+            #
             Assert(
                 And(
-                     # The number of transactions within the group transaction must be exactly 2.
-                # first one being the tip function and the second being the payment transactions
+                    # The number of transactions within the group transaction must be exactly 2.
+                    # first one being the tip function and the second being the payment transactions
                     Global.group_size() == Int(2),
                     # The number of arguments attached to the transaction should be exactly 2.
-
                     Txn.application_args.length() == Int(2),
+                    #make sure the owner cant tip
+                    App.globalGet(self.Variables.owner) != Txn.sender()
                 ),
             ),
             Assert(
                 And(
                     Gtxn[1].type_enum() == TxnType.Payment,
                     Gtxn[1].receiver() == App.globalGet(
-                        self.Variables.owner),                   
+                        self.Variables.owner),
                     Gtxn[1].sender() == Gtxn[0].sender(),
                     Gtxn[1].amount() == Btoi(Txn.application_args[1]),
                 )
             ),
 
-#increase the number of tippers of a post
-            App.globalPut(self.Variables.tippers, App.globalGet(self.Variables.tippers) + Int(1)),
-            #increase the total of the tips
-            App.globalPut(self.Variables.total, App.globalGet(self.Variables.total) + Btoi(Txn.application_args[1])),
+            # increase the number of tippers of a post
+            App.globalPut(self.Variables.tippers, App.globalGet(
+                self.Variables.tippers) + Int(1)),
+            # increase the total of the tips
+            App.globalPut(self.Variables.total, App.globalGet(
+                self.Variables.total) + Btoi(Txn.application_args[1])),
             Approve()
+        ])
+
+    def updatePost(self):
+        return Seq([
+            Assert(
+                Global.group_size() == Int(1),
+                # 1. Title 2. Content 3. Image
+                Txn.application_args.length() == Int(4),
+                # check if sender of transaction is owner of the post
+                App.globalGet(self.Variables.owner) == Txn.sender()
+            ),
+            App.globalPut(self.Variables.title, Txn.application_args[1]),
+            App.globalPut(self.Variables.content, Txn.application_args[2]),
+            App.globalPut(self.Variables.image, Txn.application_args[3]),
         ])
 
     def application_deletion(self):
@@ -69,6 +88,7 @@ class Blogger:
             [Txn.on_completion() == OnComplete.DeleteApplication,
              self.application_deletion()],
             [Txn.application_args[0] == self.AppMethods.tip, self.tipPost()],
+            [Txn.application_args[0] == self.AppMethods.update, self.updatePost()],
         )
 
     def approval_program(self):
@@ -76,6 +96,3 @@ class Blogger:
 
     def clear_program(self):
         return Return(Int(1))
-
-
-        
