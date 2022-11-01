@@ -96,7 +96,7 @@ export const createPostAction = async (senderAddress, post) => {
 
 // Tip post: Group transaction consisting of ApplicationCallTxn and PaymentTxn
 export const tipPostAction = async (senderAddress, post, _amount) => {
-    console.log("Tipping...", senderAddress, post.appId);
+    console.log("Tipping...");
 
     let params = await algodClient.getTransactionParams().do();
     params.fee = algosdk.ALGORAND_MIN_TX_FEE;
@@ -195,12 +195,9 @@ export const getPostsAction = async () => {
             let post = await getApplication(appId)
             if (post) {
                 posts.push(post)
-            }
-           
+            }          
         }
     }
-    console.log(posts);
-    console.log("posts fetched.")
     return posts
 }
 
