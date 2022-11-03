@@ -63,16 +63,13 @@ main_l6:
 txn NumAppArgs
 int 4
 ==
-assert
 txn Note
-byte "algoblogger:re10.10"
+byte "algoblogger:re11"
 ==
+&&
 assert
 byte "AUTHOR"
 txna ApplicationArgs 0
-app_global_put
-byte "CONTENT"
-txna ApplicationArgs 1
 app_global_put
 byte "TITLE"
 txna ApplicationArgs 2
@@ -89,5 +86,108 @@ app_global_put
 byte "OWNER"
 txn Sender
 app_global_put
+txna ApplicationArgs 1
+callsub fillblog_1
 int 1
 return
+
+// convert_uint_to_bytes
+convertuinttobytes_0:
+store 7
+load 7
+int 0
+==
+bnz convertuinttobytes_0_l5
+byte ""
+store 8
+load 7
+store 9
+convertuinttobytes_0_l2:
+load 9
+int 0
+>
+bnz convertuinttobytes_0_l4
+load 8
+b convertuinttobytes_0_l6
+convertuinttobytes_0_l4:
+load 9
+int 10
+%
+store 10
+byte "0123456789"
+load 10
+load 10
+int 1
++
+substring3
+load 8
+concat
+store 8
+load 9
+int 10
+/
+store 9
+b convertuinttobytes_0_l2
+convertuinttobytes_0_l5:
+byte "0"
+convertuinttobytes_0_l6:
+retsub
+
+// fill_blog
+fillblog_1:
+store 0
+load 0
+len
+store 2
+int 0
+store 1
+fillblog_1_l1:
+load 1
+int 8
+<
+bz fillblog_1_l7
+load 1
+callsub convertuinttobytes_0
+store 6
+int 127
+load 1
+*
+store 4
+load 2
+int 0
+==
+bnz fillblog_1_l7
+load 2
+int 127
+>
+bnz fillblog_1_l6
+load 2
+store 3
+load 2
+load 3
+-
+store 2
+fillblog_1_l5:
+load 0
+load 4
+load 3
+extract3
+store 5
+load 6
+load 5
+app_global_put
+load 1
+int 1
++
+store 1
+b fillblog_1_l1
+fillblog_1_l6:
+load 2
+int 127
+-
+store 2
+int 127
+store 3
+b fillblog_1_l5
+fillblog_1_l7:
+retsub
